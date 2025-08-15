@@ -2,6 +2,17 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import random
+import pygame
+
+# 🎵 Inisialisasi mixer untuk sound
+pygame.mixer.init()
+
+# Load musik & efek
+pygame.mixer.music.load("bg_music.mp3")
+pygame.mixer.music.play(-1)  # Loop tanpa henti
+
+sound_up = pygame.mixer.Sound("score_up.wav")
+sound_down = pygame.mixer.Sound("score_down.wav")
 
 # Inisialisasi MediaPipe Hands
 mp_hands = mp.solutions.hands
@@ -56,7 +67,6 @@ while True:
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-            # Ambil koordinat telapak tangan (landmark 9)
             h, w, _ = frame.shape
             cx = int(hand_landmarks.landmark[9].x * w)
             paddle_x = cx - paddle_width // 2
@@ -72,6 +82,7 @@ while True:
         if (paddle_y < ball["y"] + ball["radius"] < paddle_y + paddle_height and
             paddle_x < ball["x"] < paddle_x + paddle_width):
             score += 1
+            sound_up.play()  # Sound skor naik
             ball["x"] = random.randint(50, WIDTH - 50)
             ball["y"] = random.randint(-300, -50)
 
@@ -86,6 +97,7 @@ while True:
         if (paddle_y < obs["y"] + obs["radius"] < paddle_y + paddle_height and
             paddle_x < obs["x"] < paddle_x + paddle_width):
             score -= 2
+            sound_down.play()  # Sound skor turun
             obs["x"] = random.randint(50, WIDTH - 50)
             obs["y"] = random.randint(-300, -50)
 
@@ -112,3 +124,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+pygame.mixer.music.stop()
